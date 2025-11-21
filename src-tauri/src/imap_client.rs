@@ -226,4 +226,39 @@ impl ImapClient {
 
         Ok(())
     }
+
+    pub fn mark_as_unread(&mut self, folder: &str, uid: u32) -> Result<(), String> {
+        let session = self.session.as_mut()
+            .ok_or("Not connected to IMAP server")?;
+
+        session.select(folder)
+            .map_err(|e| format!("Failed to select folder: {}", e))?;
+
+        session.store(format!("{}", uid), "-FLAGS (\\Seen)")
+            .map_err(|e| format!("Failed to mark as unread: {}", e))?;
+
+        Ok(())
+    }
+
+    pub fn move_email(&mut self, folder: &str, uid: u32, dest_folder: &str) -> Result<(), String> {
+        let session = self.session.as_mut()
+            .ok_or("Not connected to IMAP server")?;
+
+        session.select(folder)
+            .map_err(|e| format!("Failed to select folder: {}", e))?;
+
+        // Copy email to destination folder
+        session.copy(format!("{}", uid), dest_folder)
+            .map_err(|e| format!("Failed to copy email: {}", e))?;
+
+        // Mark original for deletion
+        session.store(format!("{}", uid), "+FLAGS (\\Deleted)")
+            .map_err(|e| format!("Failed to mark for deletion: {}", e))?;
+
+        // Expunge to actually delete
+        session.expunge()
+            .map_err(|e| format!("Failed to expunge deleted emails: {}", e))?;
+
+        Ok(())
+    }
 }

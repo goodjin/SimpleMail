@@ -1,39 +1,104 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { X, Paperclip, Send } from "lucide-react";
+import React, { useState, useRef, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Send, 
+  Paperclip, 
+  X, 
+  Bold, 
+  Italic, 
+  Underline, 
+  Link, 
+  Image
+} from 'lucide-react';
+import { Mail as MailType, MailAttachment } from '@/types/mail';
+import { cn } from '@/lib/utils';
 
 export interface ComposeEmailProps {
+  replyTo?: MailType;
+  forwardOf?: MailType;
   onClose: () => void;
-  onSend: (email: { to: string; subject: string; body: string }) => void;
+  onSend: (email: {
+    to: string[];
+    cc: string[];
+    bcc: string[];
+    subject: string;
+    body: string;
+    htmlBody?: string;
+    attachments: MailAttachment[];
+  }) => void;
   initialTo?: string;
   initialSubject?: string;
   initialBody?: string;
 }
 
-export function ComposeEmail({
-  onClose,
-  onSend,
-  initialTo = "",
-  initialSubject = "",
-  initialBody = "",
+export function ComposeEmail({ 
+  replyTo, 
+  forwardOf, 
+  onClose, 
+  onSend, 
+  initialTo = "", 
+  initialSubject = "", 
+  initialBody = "" 
 }: ComposeEmailProps) {
-  const [to, setTo] = useState(initialTo);
-  const [subject, setSubject] = useState(initialSubject);
-  const [body, setBody] = useState(initialBody);
+  const [formData, setFormData] = useState({
+    to: initialTo,
+    cc: '',
+    bcc: '',
+    subject: initialSubject,
+    body: initialBody,
+    htmlBody: ''
+  });
+  
+  const [attachments, setAttachments] = useState<MailAttachment[]>([]);
+  const [showCcBcc, setShowCcBcc] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [activeTab, setActiveTab] = useState('edit');
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (replyTo) {
+      setFormData(prev => ({
+        ...prev,
+        to: replyTo.from,
+        subject: replyTo.subject ? `Re: ${replyTo.subject}` : '',
+        body: `\n\n---\nOn ${new Date(replyTo.date).toLocaleString()}, ${replyTo.from} wrote:\n${replyTo.body || ''}`,
+        htmlBody: replyTo.htmlBody ? `<br><br>---<br>On ${new Date(replyTo.date).toLocaleString()}, ${replyTo.from} wrote:<br>${replyTo.htmlBody}` : ''
+      }));
+    } else if (forwardOf) {
+      setFormData(prev => ({
+        ...prev,
+        subject: forwardOf.subject ? `Fwd: ${forwardOf.subject}` : '',
+        body: `\n\n--- Forwarded message ---\nFrom: ${forwardOf.from}\nDate: ${new Date(forwardOf.date).toLocaleString()}\nSubject: ${forwardOf.subject}\n\n${forwardOf.body || ''}`,
+        htmlBody: forwardOf.htmlBody ? `<br><br>--- Forwarded message ---<br>From: ${forwardOf.from}<br>Date: ${new Date(forwardOf.date).toLocaleString()}<br>Subject: ${forwardOf.subject}<br><br>${forwardOf.htmlBody}` : ''
+      }));
+    }
+  }, [replyTo, forwardOf]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!to.trim() || !subject.trim() || !body.trim()) {
+    if (!formData.to.trim() || !formData.subject.trim() || !formData.body.trim()) {
       return;
     }
 
     setIsSending(true);
     try {
-      await onSend({ to, subject, body });
+      await onSend({ 
+        to: formData.to.split(',').map(addr => addr.trim()),
+        cc: [],
+        bcc: [],
+        subject: formData.subject,
+        body: formData.body,
+        htmlBody: undefined,
+        attachments: []
+      });
       onClose();
     } catch (error) {
       console.error("Failed to send email:", error);
@@ -63,8 +128,8 @@ export function ComposeEmail({
               <Label htmlFor="to">收件人</Label>
               <Input
                 id="to"
-                value={to}
-                onChange={(e) => setTo(e.target.value)}
+                value={formData.to}
+                onChange={(e) => setFormData((prev: typeof formData) => ({ ...prev, to: e.target.value }))}
                 placeholder="example@example.com"
                 required
                 disabled={isSending}
@@ -75,21 +140,22 @@ export function ComposeEmail({
               <Label htmlFor="subject">主题</Label>
               <Input
                 id="subject"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="邮件主题"
+                value={formData.subject}
+                onChange={(e) => setFormData((prev: typeof formData) => ({ ...prev, subject: e.target.value }))}
+                placeholder="输入主题"
                 required
                 disabled={isSending}
               />
             </div>
             
-            <div className="space-y-2 flex-1 flex flex-col">
+            <div className="space-y-2">
               <Label htmlFor="body">内容</Label>
               <Textarea
                 id="body"
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                className="flex-1 min-h-[200px]"
+                value={formData.body}
+                onChange={(e) => setFormData((prev: typeof formData) => ({ ...prev, body: e.target.value }))}
+                placeholder="输入邮件内容..."
+                rows={10}
                 required
                 disabled={isSending}
               />

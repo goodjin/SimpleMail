@@ -1,7 +1,7 @@
-import { Mail } from "@/types/mail";
+import { Mail, MailAttachment } from "@/types/mail";
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Reply, ReplyAll, Forward, Archive, Trash2, Tag, MoreVertical } from "lucide-react";
+import { ArrowLeft, Reply, ReplyAll, Forward, Archive, Trash2, MoreVertical, Download, Paperclip } from "lucide-react";
 
 interface MailDetailProps {
   mail: Mail | null;
@@ -18,6 +18,42 @@ export function MailDetail({ mail, onBack, onReply, onForward }: MailDetailProps
       </div>
     );
   }
+
+  const renderEmailBody = () => {
+    if (mail.htmlBody) {
+      return (
+        <div 
+          className="prose max-w-none" 
+          dangerouslySetInnerHTML={{ __html: mail.htmlBody }}
+        />
+      );
+    }
+    return (
+      <div className="whitespace-pre-wrap font-mono text-sm">
+        {mail.body}
+      </div>
+    );
+  };
+
+  const handleDownloadAttachment = (attachment: MailAttachment) => {
+    // Convert base64 to blob and download
+    const byteCharacters = atob(attachment.content);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: attachment.contentType });
+    
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = attachment.filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -50,6 +86,9 @@ export function MailDetail({ mail, onBack, onReply, onForward }: MailDetailProps
               <div className="font-medium">{mail.from}</div>
               <div className="text-xs text-muted-foreground">
                 收件人: {mail.to.join(', ')}
+                {mail.cc && mail.cc.length > 0 && (
+                  <span> | 抄送: {mail.cc.join(', ')}</span>
+                )}
               </div>
             </div>
           </div>
@@ -60,7 +99,36 @@ export function MailDetail({ mail, onBack, onReply, onForward }: MailDetailProps
       </div>
 
       <div className="flex-1 p-6 overflow-auto">
-        <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: mail.body }} />
+        {renderEmailBody()}
+        
+        {/* Attachments */}
+        {mail.attachments && mail.attachments.length > 0 && (
+          <div className="mt-6 border-t border-border pt-4">
+            <div className="flex items-center mb-3">
+              <Paperclip className="h-4 w-4 mr-2" />
+              <span className="font-medium">附件 ({mail.attachments.length})</span>
+            </div>
+            <div className="space-y-2">
+              {mail.attachments.map((attachment, index) => (
+                <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium">{attachment.filename}</span>
+                    <span className="text-xs text-muted-foreground">
+                      ({(attachment.size / 1024).toFixed(1)} KB)
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDownloadAttachment(attachment)}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="border-t border-border p-4 flex justify-between items-center">

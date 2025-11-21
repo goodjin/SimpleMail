@@ -4,43 +4,43 @@
 
 ### 1.1 Email Parsing
 **Goal**: Implement robust email parsing functionality
-- [ ] Add `mail-parser` and `mail-builder` crates to Cargo.toml
-- [ ] Create `src/email/parser.rs` for email parsing logic
-- [ ] Implement MIME type handling
-- [ ] Add attachment extraction and processing
-- [ ] Create Tauri commands in `src/commands/email.rs`
-- [ ] Add TypeScript types in `src/types/email.ts`
+- [x] Add `mail-parser` and `mail-builder` crates to Cargo.toml
+- [x] Create `src/email/parser.rs` for email parsing logic
+- [x] Implement MIME type handling
+- [x] Add attachment extraction and processing
+- [x] Create Tauri commands in `src/commands/email.rs`
+- [x] Add TypeScript types in `src/types/email.ts`
 
 ### 1.2 Email Storage & Database
 **Goal**: Set up local storage for emails and accounts
-- [ ] Add `sqlx` and `rusqlite` to Cargo.toml
-- [ ] Create database schema in `src/db/schema.sql`
-- [ ] Implement database initialization in `src/db/mod.rs`
-- [ ] Create models in `src/models/`
-  - [ ] Account model
-  - [ ] Email model
-  - [ ] Folder model
+- [x] Add `sqlx` and `rusqlite` to Cargo.toml
+- [x] Create database schema in `src/db/schema.sql`
+- [x] Implement database initialization in `src/db/mod.rs`
+- [x] Create models in `src/models/`
+  - [x] Account model
+  - [x] Email model
+  - [x] Folder model
 
 ### 1.3 Basic Email Operations
 **Goal**: Core email sending/receiving functionality
-- [ ] Complete IMAP client implementation
-- [ ] Complete SMTP client implementation
-- [ ] Add basic email display component
-- [ ] Implement email fetching/sending commands
+- [x] Complete IMAP client implementation
+- [x] Complete SMTP client implementation
+- [x] Add basic email display component
+- [x] Implement email fetching/sending commands
 
 ## Phase 2: Essential UI Components (High-Medium Priority)
 
 ### 2.1 Authentication & Account Setup
-- [ ] Create login page
-- [ ] Implement account management UI
-- [ ] Add IMAP/SMTP configuration form
-- [ ] Set up secure credential storage
+- [x] Create login page
+- [x] Implement account management UI
+- [x] Add IMAP/SMTP configuration form
+- [x] Set up secure credential storage
 
 ### 2.2 Core UI Components
-- [ ] Email list component with virtualization
-- [ ] Basic email viewer component
-- [ ] Compose email interface
-- [ ] Navigation sidebar
+- [x] Email list component with virtualization
+- [x] Basic email viewer component
+- [x] Compose email interface
+- [x] Navigation sidebar
 
 ## Phase 3: Enhanced Features (Medium Priority)
 

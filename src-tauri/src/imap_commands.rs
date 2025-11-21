@@ -83,10 +83,30 @@ pub fn imap_mark_email(request: MarkEmailRequest) -> Result<(), String> {
     
     match request.action.as_str() {
         "read" => client.mark_as_read(&request.folder, request.uid),
+        "unread" => client.mark_as_unread(&request.folder, request.uid),
         "starred" => client.mark_as_starred(&request.folder, request.uid),
         "delete" => client.delete_email(&request.folder, request.uid),
         _ => Err(format!("Unknown action: {}", request.action)),
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct MoveEmailRequest {
+    pub account_id: String,
+    pub folder: String,
+    pub uid: u32,
+    pub dest_folder: String,
+}
+
+#[tauri::command]
+pub fn imap_move_email(request: MoveEmailRequest) -> Result<(), String> {
+    let mut connections = IMAP_CLIENTS.lock()
+        .map_err(|e| format!("Failed to acquire lock: {}", e))?;
+    
+    let client = connections.get_mut(&request.account_id)
+        .ok_or("No connection found for account")?;
+    
+    client.move_email(&request.folder, request.uid, &request.dest_folder)
 }
 
 #[tauri::command]

@@ -29,3 +29,35 @@ lettre = "0.11"
 tokio = { version = "1", features = ["full"] }
 dotenv = "0.15"
 dirs = "6.0.0"
+mail-parser = "0.8"
+mail-builder = "0.3"
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite"] }
+rusqlite = { version = "0.30", features = ["bundled"] }
+uuid = { version = "1.0", features = ["v4"] }
+aes-gcm = "0.10"
+base64 = "0.21"
+rand = "0.8"
+chrono = { version = "0.4", features = ["serde"] }
+thiserror = "1.0"
+anyhow = "1.0"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Testing dependencies
+[dev-dependencies]
+tempfile = "3.0"
+mockall = "0.11"
+tokio-test = "0.4"
+wiremock = "0.5"
+serial_test = "2.0"
+criterion = "0.5"
+
+[features]
+# by default Tauri runs in production mode
+# when `tauri dev` runs it is executed with `cargo run --no-default-features --features debug`
+default = ["custom-protocol"]
+# this feature is used for production builds or when `devPath` points to the filesystem
+# DO NOT REMOVE THIS
+custom-protocol = ["tauri/custom-protocol"]
+# enable debug features for development
+debug = ["tauri/debug"]
